@@ -4,9 +4,8 @@
 #include <WebSocketsServer.h>
 #include <LittleFS.h>
 
-// Två lysdioder. GPIO14 och GPIO15 har var sin PWM-kanal.
-// Seriemotstånd krävs. GPIO12 och GPIO13 används inte.
-// (两颗 LED。GPIO14 与 GPIO15 各有一路 PWM。必须串联电阻。GPIO12 与 GPIO13 未使用。)
+// Two LEDs. GPIO14 and GPIO15 each have their own PWM channel.
+// A series resistor is required. GPIO12 and GPIO13 are unused.
 constexpr bool ENABLE_PWM_OUTPUTS = true;
 constexpr int LED_M1 = 14;
 constexpr int LED_M2 = 15;
@@ -17,11 +16,10 @@ constexpr int PWM_BITS = 12;
 constexpr int PWM_MAX = (1 << PWM_BITS) - 1;
 constexpr unsigned long CONTROL_TIMEOUT_MS = 60000;
 constexpr const char* AP_SSID = "PingPong-ESP32";
-constexpr const char* AP_PASSWORD = "pingpong123"; // Byt lösenord vid riktig driftsättning. (正式部署时请更换密码。)
+constexpr const char* AP_PASSWORD = "pingpong123"; // Change this password before any real deployment.
 
 WebServer server(80);
-// Ljusstyrkan går över en egen WebSocket-port. HTTP på port 80 serverar bara sidan.
-// (亮度走单独的 WebSocket 端口。80 端口的 HTTP 只负责提供页面。)
+// Brightness uses its own WebSocket port. HTTP on port 80 serves the page and the earlier REST routes.
 WebSocketsServer ws(81);
 int wsClients = 0;
 unsigned long lastStatusBroadcast = 0;
@@ -41,8 +39,7 @@ void writeLed(int pin, int channel, int percent) {
   ledcWrite(pin, duty);
   (void)channel;
 #else
-  // Arduino-ESP32 2.x skriver till LEDC-kanalen, inte till GPIO-numret.
-  // (Arduino-ESP32 2.x 写入的是 LEDC 通道，不是 GPIO 号。)
+  // Arduino-ESP32 2.x writes the LEDC channel, not the GPIO number.
   ledcWrite(channel, duty);
   (void)pin;
 #endif
@@ -67,8 +64,7 @@ void initOutputs() {
 }
 
 void applyOutputs() {
-  // Stoppad, tidsgräns passerad eller ännu inte startad: båda lysdioderna är släckta.
-  // (已停止、已超时或尚未启动：两颗 LED 保持熄灭。)
+  // Stopped, timed out, or not yet started: both LEDs stay off.
   const int a = running ? motor1 : 0;
   const int b = running ? motor2 : 0;
   if (!ENABLE_PWM_OUTPUTS) return;
@@ -100,8 +96,7 @@ void sendJson() {
 }
 
 void onStart() {
-  // På riktig maskin: förreglingar ska kontrolleras här.
-  // (真机上：联锁检查必须放在这里。)
+  // On the real machine, interlock checks belong here.
   motor1 = motor2 = 0;
   running = true;
   lastCommand = millis();
@@ -117,8 +112,7 @@ void onMotors() {
   }
   const String aText = server.arg("motor1");
   const String bText = server.arg("motor2");
-  // Strikt heltalskontroll (inget minustecken, decimal eller avslutande skräp).
-  // (严格的整数校验：不允许负号、小数或尾部杂字符。)
+  // Strict integer check: no sign, decimal point, or trailing junk.
   auto valid = [](const String& s) {
     if (s.isEmpty() || s.length() > 3) return false;
     for (size_t i = 0; i < s.length(); ++i) if (!isDigit(s[i])) return false;
@@ -161,7 +155,7 @@ void serveStatic() {
     server.streamFile(file, "text/html");
     file.close();
   } else if (path == "/index.html") {
-    server.send(200, "text/html", "<h1>KK2 LED</h1><p>API redo. Ladda upp React-bygget till LittleFS.</p><p>API 已就绪。请把 React 构建结果上传到 LittleFS。</p>");
+    server.send(200, "text/html", "<h1>KK2 LED</h1><p>API ready. Upload the React build to LittleFS.</p>");
   } else {
     server.send(404, "text/plain", "Not found");
   }
@@ -190,8 +184,7 @@ void sendStatus(uint8_t num) {
   ws.sendTXT(num, buf);
 }
 
-// Läser ett heltal 0–100 efter en JSON-nyckel, till exempel "a".
-// (读取 JSON 键后面的 0–100 整数，例如 "a"。)
+// Reads a 0–100 integer after a JSON key, for example "a".
 bool readJsonInt(const char* json, const char* key, int& value) {
   const char* p = strstr(json, key);
   if (!p) return false;
@@ -250,8 +243,7 @@ void onWsEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length) {
       break;
     case WStype_DISCONNECTED:
       if (wsClients > 0) wsClients--;
-      // Sista sidan borta: släck, vänta inte på en minuts tidsgräns.
-      // (最后一个页面断开：立刻关灯，不等那一分钟超时。)
+      // Last page gone: turn the LEDs off now, without waiting for the one-minute timeout.
       if (wsClients == 0 && running) {
         stopNow();
         Serial.println("WS DISCONNECT: STOP");
@@ -293,9 +285,8 @@ void setup() {
   ws.onEvent(onWsEvent);
 }
 
-// Första API-svaret skriver ut detta. En utskrift vid start tappas av USB-Serial/JTAG
-// om ingen monitor redan läser, och en lång printf kan missa sändbufferten på 256 byte.
-// (第一次 API 应答时才打印。监视器当时没在读时，启动打印会被 USB-Serial/JTAG 丢掉；过长的 printf 也会塞满 256 字节发送缓冲。)
+// Printed on the first API response or WebSocket connection. A boot-time print is dropped
+// by USB-Serial/JTAG when no monitor is reading, and a long printf can overflow the 256-byte TX buffer.
 void printBootBanner() {
   Serial.print("SSID=");
   Serial.print(AP_SSID);

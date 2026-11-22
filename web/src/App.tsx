@@ -26,8 +26,7 @@ const EMPTY: DeviceStatus = {
 
 function socketUrl() {
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  // Utveckling: Vite skickar /ws vidare. På kortet lyssnar port 81 direkt.
-  // (开发时 Vite 转发 /ws。页面在板子上时，浏览器直接连 81 端口。)
+  // In development Vite forwards /ws. On the board the browser connects to port 81 directly.
   if (import.meta.env.DEV) return `${proto}//${location.host}/ws`;
   return `${proto}//${location.hostname}:81/`;
 }
@@ -183,8 +182,7 @@ export default function App() {
   }, [attempt, flushLevel]);
 
   useEffect(() => {
-    // Sidan är öppen men reglaget står stilla: skicka samma värde så tidsgränsen inte släcker.
-    // (页面还开着、滑块没动：偶尔重发当前亮度，避免一分钟超时把灯关掉。)
+    // Page still open and sliders idle: resend the current brightness so the one-minute timeout does not turn the LEDs off.
     const id = window.setInterval(() => {
       if (!running.current || sendTimer.current != null) return;
       flushLevel();

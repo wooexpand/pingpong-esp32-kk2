@@ -2,6 +2,18 @@
 
 > Project planning handoff for Cursor. Version: 2026-11-17. This is **planning only**. The project source is already open in Cursor. Do not regenerate, overwrite or restructure the existing project without inspecting it and asking first.
 
+## 0. Plan versus the current tree
+
+Sections 1–8 below are the handoff from 2026-11-17. They stay in their original meaning. They are not a description of the firmware as it runs today. `README.md` is that description.
+
+What the repository does now, and where this plan says something else:
+
+- The page controls two LEDs, not motors. `ENABLE_PWM_OUTPUTS` is `true` for GPIO14 and GPIO15. V0.5 and V1.0 have not been built. Enabling LED PWM is not permission to connect a 775 motor or a BTS7960.
+- The live commands are WebSocket text frames on port 81: `{"t":"start"}`, `{"t":"stop"}`, and `{"t":"level","a":N,"b":N}`. The HTTP routes from section 4 are still registered. The page does not use them for brightness.
+- `POST /api/motors` reads form fields `motor1` and `motor2`. It does not parse a JSON body.
+- The page sends the latest slider pair about every 30 ms, plus a 5-second keepalive while it is running and visible. It does not post an HTTP heartbeat every 300 ms. The firmware timeout remains one minute (`CONTROL_TIMEOUT_MS` 60000). The last WebSocket client disconnecting also stops at once.
+- Section 8 says to keep motor outputs disabled until a hardware review. That rule still applies to any future motor stage. It does not describe the LED bench, where the outputs were turned on deliberately.
+
 ## 1. Product goal
 
 Build a practical, demonstrable table-tennis ball launcher controlled from a single React-based mobile interface on Android and iPhone. ESP32-S3 runs a local Wi-Fi access point, a small HTTP API and (later) hosts the built web UI. Two independent 12 V brushed motors drive two friction wheels; differential speed changes ball spin.

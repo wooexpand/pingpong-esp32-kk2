@@ -1,37 +1,56 @@
-# KK2 开发计划与验收
+# KK2 milestones and checks
 
-## V0.1 — REST 通信
-- ESP32-S3 广播 AP `PingPong-ESP32`
-- `GET /api/status` 返回可解析 JSON
-- `POST /api/start` 进入运行状态
-- `POST /api/motors` 正确处理 0-100 数值并打印 Serial
-- `POST /api/stop` 立即清零，断联约 1 分钟自动停机
+This is the original milestone list. It is not a claim that every item has been demonstrated. The current code is the two-LED bench described in `README.md`: the page controls brightness over WebSocket on port 81, and the HTTP routes from V0.1 are still present but unused by the page.
 
-## V0.2 — React 控制器
-- Cursor 中的 React 页面提供连接状态、双滑块、预设、启停
-- 浏览器与 ESP32 连续交换命令
-- 网络断开有明确提示
+| Milestone | In this repository |
+| --- | --- |
+| V0.1 REST | Routes exist. The live page does not call them. |
+| V0.2 React page | Implemented. Transport is WebSocket, not a 300 ms HTTP poll. |
+| V0.3 Page on the board | Build and LittleFS copy path exist. |
+| V0.4 LED bench | Implemented. PWM is enabled for GPIO14 and GPIO15 only. |
+| V0.5 Motors | Not implemented. |
+| V1.0 Launcher | Not implemented. |
 
-## V0.3 — 单板独立部署
-- `web/dist` 部署到 LittleFS
-- 手机连接 ESP32 Wi-Fi，访问 `http://192.168.4.1`
-- iOS Safari 添加到主屏幕；Android 测试添加快捷方式
-- 离开电脑后仍可操作
+## V0.1 — REST communication
 
-## V0.4 — LED 验证
-- 安全前提下启用双路 PWM，仅连接带限流电阻的 LED
-- 两通道变化可观察
+- ESP32-S3 advertises the access point `PingPong-ESP32`
+- `GET /api/status` returns parseable JSON
+- `POST /api/start` enters the running state
+- `POST /api/motors` accepts 0–100 values and prints them on Serial
+- `POST /api/stop` clears the outputs immediately; about one minute without a command also stops
 
-## V0.5 — 电机测试
-- 另行设计和审核电源、驱动器、接线与急停
-- 验证最大电流、失联、重启和失控停机
+## V0.2 — React controller
 
-## V1.0 — 机械发射验证
-- 可靠的成品摩擦轮、保护罩、可调节电机座
-- 单球发射可重复；由手机控制速度与差速
+- The React page shows link state, two sliders, presets, Start, and Stop
+- The browser and the ESP32 exchange commands continuously
+- A lost network connection is shown clearly
 
-## 风险清单
-- 真实电机危险：卡球、飞轮碎裂、电机过流、塑料轮毂破裂
-- SoftAP 没有互联网；手机可能自动切回数据网络
-- HTTP 不加密；其他连接到热点的客户端可控制设备
-- 本地 HTTP 不能满足标准 HTTPS Service Worker 约束
+## V0.3 — Board serves the page
+
+- `web/dist` is deployed to LittleFS
+- The phone joins the ESP32 Wi-Fi and opens `http://192.168.4.1`
+- Add to Home Screen in iOS Safari; test an Android shortcut
+- The page still works after the development computer is shut down
+
+## V0.4 — LED check
+
+- With the wiring reviewed, enable two PWM channels and connect only LEDs that have series resistors
+- Both channels can be told apart by eye
+
+## V0.5 — Motor test
+
+- Design and review the supply, drivers, wiring, and emergency stop separately
+- Check maximum current, loss of link, reset, and a stop when control is lost
+- The intended power stage is two 775 motors and BTS7960 drivers. That hardware is not part of the LED demonstration
+
+## V1.0 — Mechanical launch check
+
+- Finished friction wheels, a guard, and an adjustable motor mount
+- One ball can be launched repeatedly; the phone sets speed and the speed difference
+
+## Risks
+
+- A real motor can jam a ball, throw material from a wheel, overcurrent, or break a plastic hub
+- The SoftAP has no Internet path; a phone may switch back to mobile data on its own
+- HTTP is not encrypted; any other client on the hotspot can control the device
+- Plain local HTTP does not meet the secure-context rules of a normal service worker

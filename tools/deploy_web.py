@@ -1,5 +1,4 @@
-"""Kopiera web/dist till esp32/data för PlatformIO Upload Filesystem Image.
-(把 web/dist 复制到 esp32/data，供 PlatformIO 烧录文件系统镜像。)"""
+"""Copy web/dist to esp32/data for the PlatformIO filesystem image."""
 from pathlib import Path
 import shutil
 root=Path(__file__).resolve().parents[1]
