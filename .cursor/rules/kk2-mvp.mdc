@@ -1,0 +1,5 @@
+---
+description: KK2 embedded Wi-Fi launcher incremental development rules
+alwaysApply: true
+---
+Read `KK2_PROJECT_PLAN.md` before modifying this project. The existing repository is authoritative for current code; inspect it first. Implement one verifiable milestone at a time, starting with the earliest incomplete V0.x version. Preserve working code and do not regenerate the application. Never claim unperformed hardware tests. For ESP32 motor control, default to disabled outputs and zero duty after reset, STOP or communication timeout; physical emergency stop and guarded moving parts are required before powered motor tests. For mobile UI, remember ESP32 local HTTP is not a secure PWA context; do not promise iPhone/Android offline installability or automatic Wi-Fi switching. Include build/test steps and short evidence for each increment.
